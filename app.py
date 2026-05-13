@@ -24,35 +24,69 @@ def answer_question(question):
     chain = get_rag_chain()
 
     response = chain.invoke({
+        "chat_history": st.session_state.chat_history,
         "context": format_docs(docs),
         "question": question
     })
+
+    # Save conversation
+    st.session_state.chat_history += f"\nUser: {question}\nAssistant: {response}\n"
 
     return response
 
 
 def main():
-    st.set_page_config("Doc QA")
+    st.set_page_config("Doc QA Chatbot")
     st.header("Chat with PDFs 💬")
+
+    # Initialize memory
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = ""
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    # Display previous messages
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
     question = st.text_input("Ask a question")
 
     if question:
-        answer = answer_question(question)
-        st.write(answer)
+        # Show user message
+        st.session_state.messages.append({
+            "role": "user",
+            "content": question
+        })
+
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        # Generate response
+        response = answer_question(question)
+
+        # Show assistant message
+        with st.chat_message("assistant"):
+            st.markdown(response)
+
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": response
+        })
 
     with st.sidebar:
         st.title("Upload PDFs")
 
         pdf_files = st.file_uploader(
-            "Upload",
+            "Upload PDF files",
             accept_multiple_files=True
         )
 
-        if st.button("Process"):
+        if st.button("Process PDFs"):
             with st.spinner("Processing..."):
                 process_pdfs(pdf_files)
-                st.success("Done!")
+                st.success("Processing Complete!")
 
 
 if __name__ == "__main__":

@@ -1,15 +1,21 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 
 
 def get_rag_chain():
 
-    prompt = PromptTemplate.from_template("""
-    Answer the question based ONLY on the context below.
+    prompt = ChatPromptTemplate.from_template("""
+    You are a helpful PDF assistant.
 
-    If answer is not available, say:
+    Use the provided context and chat history to answer the question.
+
+    If answer is not available in context, say:
     "Answer is not available in the context."
+
+    Chat History:
+    {chat_history}
 
     Context:
     {context}
