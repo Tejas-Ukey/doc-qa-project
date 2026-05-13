@@ -1,0 +1,17 @@
+Project Structure
+
+doc_qa_project/
+│
+├── app.py                # Streamlit UI
+├── config.py             # API keys & configs
+├── requirements.txt
+│
+├── src/
+│   ├── loader.py         # PDF loading
+│   ├── splitter.py       # Text chunking
+│   ├── embeddings.py     # Embedding model
+│   ├── vectorstore.py    # FAISS logic
+│   ├── rag_chain.py      # LLM + prompt
+│
+└── data/
+    └── faiss_index/      # Saved vector DB

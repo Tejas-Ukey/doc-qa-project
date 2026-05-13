@@ -1,0 +1,21 @@
+# UI
+streamlit
+
+# Environment variables
+python-dotenv
+
+# PDF processing
+PyPDF2
+
+# LangChain (new modular structure)
+langchain
+langchain-core
+langchain-community
+langchain-text-splitters 
+
+# Google Gemini integration
+google-generativeai
+langchain-google-genai
+
+# Vector database
+faiss-cpu
