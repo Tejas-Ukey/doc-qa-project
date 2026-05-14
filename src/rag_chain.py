@@ -28,7 +28,9 @@ def get_rag_chain():
         temperature=0.3
     )
 
-    return prompt | model | StrOutputParser()
+    chain = prompt | model
+
+    return chain
 
 
 def format_docs(docs):

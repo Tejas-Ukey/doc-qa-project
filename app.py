@@ -27,16 +27,6 @@ def answer_question(question):
 
     chain = get_rag_chain()
 
-    response = chain.invoke({
-        "chat_history": st.session_state.chat_history,
-        "context": format_docs(docs),
-        "question": question
-    })
-
-    # Save conversation
-    st.session_state.chat_history += f"\nUser: {question}\nAssistant: {response}\n"
-
-    # Extract sources
     sources = []
 
     for doc in docs:
@@ -48,15 +38,42 @@ def answer_question(question):
 
     unique_sources = list(set(sources))
 
-    source_text = "\n\n".join([f"• {s}" for s in unique_sources])
+    source_text = "\n".join(unique_sources)
 
+    full_response = ""
+
+    response_container = st.empty()
+
+    # STREAMING STARTS HERE
+    for chunk in chain.stream({
+        "chat_history": st.session_state.chat_history,
+        "context": format_docs(docs),
+        "question": question
+    }):
+
+        if chunk.content:
+
+            full_response += chunk.content
+
+            response_container.markdown(
+                full_response + "▌"
+            )
+
+    # Final response
     final_response = f"""
-{response}
+{full_response}
 
 ---
 📚 Sources:
 {source_text}
 """
+
+    response_container.markdown(final_response)
+
+    # Save memory
+    st.session_state.chat_history += (
+        f"\nUser: {question}\nAssistant: {full_response}\n"
+    )
 
     return final_response
 
@@ -89,12 +106,10 @@ def main():
         with st.chat_message("user"):
             st.markdown(question)
 
-        # Generate response
-        response = answer_question(question)
 
         # Show assistant message
         with st.chat_message("assistant"):
-            st.markdown(response)
+            response = answer_question(question)
 
         st.session_state.messages.append({
             "role": "assistant",
