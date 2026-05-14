@@ -1,7 +1,7 @@
 from langchain_community.vectorstores import FAISS
 
-def create_vectorstore(chunks, embeddings):
-    db = FAISS.from_texts(chunks, embedding=embeddings)
+def create_vectorstore(documents, embeddings):
+    db = FAISS.from_documents(documents, embedding=embeddings)
     db.save_local("data/faiss_index")
 
 

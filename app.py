@@ -2,15 +2,15 @@ import streamlit as st
 
 import config
 from src.loader import load_pdfs
-from src.splitter import split_text
+from src.splitter import split_documents
 from src.embeddings import get_embeddings
 from src.vectorstore import create_vectorstore, load_vectorstore
 from src.rag_chain import get_rag_chain, format_docs
 
 
 def process_pdfs(pdf_files):
-    text = load_pdfs(pdf_files)
-    chunks = split_text(text)
+    documents = load_pdfs(pdf_files)
+    chunks = split_documents(documents)
     embeddings = get_embeddings()
     create_vectorstore(chunks, embeddings)
 
@@ -19,7 +19,11 @@ def answer_question(question):
     embeddings = get_embeddings()
     db = load_vectorstore(embeddings)
 
-    docs = db.similarity_search(question, k=3)
+    docs = db.max_marginal_relevance_search(
+        question,
+        k=5,
+        fetch_k=10
+    )
 
     chain = get_rag_chain()
 
@@ -32,7 +36,29 @@ def answer_question(question):
     # Save conversation
     st.session_state.chat_history += f"\nUser: {question}\nAssistant: {response}\n"
 
-    return response
+    # Extract sources
+    sources = []
+
+    for doc in docs:
+
+        source = doc.metadata.get("source", "Unknown")
+        page = doc.metadata.get("page", "N/A")
+
+        sources.append(f"{source} - Page {page}")
+
+    unique_sources = list(set(sources))
+
+    source_text = "\n\n".join([f"• {s}" for s in unique_sources])
+
+    final_response = f"""
+{response}
+
+---
+📚 Sources:
+{source_text}
+"""
+
+    return final_response
 
 
 def main():
